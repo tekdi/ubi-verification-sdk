@@ -5,6 +5,9 @@ const swaggerUI = require('@fastify/swagger-ui');
 const path = require('path');
 const verificationService = require('./services/verificationService');
 const validationService = require('./services/validationService');
+require('dotenv').config();
+const PORT = process.env.PORT || 3000;
+const HOST = process.env.HOST || '0.0.0.0';
 
 // Define eligibility rules schema
 const eligibilityRulesSchema = {
@@ -188,7 +191,7 @@ fastify.post('/verification', {
 const start = async () => {
   try {
     await fastify.ready();
-    await fastify.listen({ port: 3000, host: '0.0.0.0' });
+    await fastify.listen({ port: PORT, host: HOST });
     fastify.log.info(`Server is running on ${fastify.server.address().port}`);
   } catch (err) {
     fastify.log.error(err);

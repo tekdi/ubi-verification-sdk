@@ -28,7 +28,7 @@ class VerificationService {
         };
       } else if (method === "verify_using_api") {
         // Use the remote verification_api_endpoint for verification
-        const response = await axios.post(`${process.env.verification_api_endpoint}/verify`, credential);
+        const response = await axios.post(`${process.env.VERIFICATION_API_ENDPOINT}/verify`, credential);
         const error = response?.data?.error;
         const checks = response?.data?.checks;
 
