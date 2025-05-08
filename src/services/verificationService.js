@@ -11,18 +11,22 @@ class VerificationService {
    * 
    * @returns {Object} - The result of the verification process, including success status, message, and additional details.
    */
-  async verify(credential, config, eligibility_rules = null) {
+  async verify(credential, config = {}, eligibility_rules = null) {
     try {
       let verificationResult;
       let errorMessage = '';
 
-      if (config.method == "verify_using_signature") {
+      // Set default method to "verify_using_api" if config.method is not provided
+      const method = config?.method || "verify_using_api";
+      console.log("Verification method:", method);
+
+      if (method === "verify_using_signature") {
         // Use the standalone verification library
         verificationResult = {
           success: false,
           message: 'Credential verification failed.'
         };
-      } else if (config.method == "verify_using_api") {
+      } else if (method === "verify_using_api") {
         // Use the remote verification_api_endpoint for verification
         const response = await axios.post(`${process.env.verification_api_endpoint}/verify`, credential);
         const error = response?.data?.error;

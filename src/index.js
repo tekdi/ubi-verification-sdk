@@ -77,7 +77,7 @@ fastify.post('/verification', {
     description: 'Verify if beneficiary credentials are valid and check eligibility for benefits',
     body: {
       type: 'object',
-      required: ['credential'], // Removed 'userProfile' from required fields
+      required: ['credential'],
       properties: {
         credential: {
           type: 'object',
@@ -163,9 +163,7 @@ fastify.post('/verification', {
   }
 }, async (request, reply) => {
   try {
-    const { credential } = request.body;
-    const eligibility_rules = request.body.eligibility_rules || {};
-    const config = request.body.config || {};
+    const { credential, eligibility_rules, config } = request.body;
 
     // Validate input
     if (!credential) {
