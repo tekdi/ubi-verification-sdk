@@ -1,0 +1,70 @@
+openapi: 3.0.3
+info:
+  title: Verification API
+  version: 1.0.0
+
+paths:
+  /verification:
+    post:
+      summary: Verify user credential using API
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                credential:
+                  type: object
+                  description: Credential data to be verified
+                  properties:
+                    name:
+                      type: string
+                      example: John Doe
+                config:
+                  type: object
+                  description: Optional configuration for verification
+                  properties:
+                    method:
+                      type: string
+                      enum: [verify_using_api]
+                      default: verify_using_api
+              required:
+                - credential
+      responses:
+        '200':
+          description: Credential verified successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Credential verified successfully.
+        '400':
+          description: Credential verification failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Credential verification failed.
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        error:
+                          type: string
+                          example: Error verifyDisclosedAttributes
+        '500':
+          description: Internal Server Error
