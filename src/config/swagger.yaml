@@ -2,10 +2,11 @@ openapi: 3.0.3
 info:
   title: Verification API
   version: 1.0.0
+
 paths:
   /verification:
     post:
-      summary: Verify user profile using API
+      summary: Verify user credential using API
       requestBody:
         required: true
         content:
@@ -13,45 +14,23 @@ paths:
             schema:
               type: object
               properties:
-                userProfile:
-                  type: object
-                  properties:
-                    name:
-                      type: string
-                      example: Ankushkumar Maherwal
-                    gender:
-                      type: string
-                      enum: [Male, Female, Other]
-                    age:
-                      type: integer
-                      example: 33
-                    dateOfBirth:
-                      type: string
-                      format: date
-                      example: 1991-11-02
-                    caste:
-                      type: string
-                      example: obc
-                    income:
-                      type: string
-                      example: "10"
                 credential:
                   type: object
+                  description: Credential data to be verified
                   properties:
                     name:
                       type: string
-                      example: Ankushkumar Maherwal
+                      example: John Doe
                 config:
                   type: object
+                  description: Optional configuration for verification
                   properties:
                     method:
                       type: string
                       enum: [verify_using_api]
-                      example: verify_using_api
+                      default: verify_using_api
               required:
-                - userProfile
                 - credential
-                - config
       responses:
         '200':
           description: Credential verified successfully
