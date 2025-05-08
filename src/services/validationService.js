@@ -8,26 +8,6 @@ class ValidationService {
   }
 
   /**
-   * Validate user profile against schema
-   * @param {Object} userProfile - User profile data
-   * @param {Object} schema - Validation schema
-   * @returns {Object} Validation result
-   */
-  validateUserProfile(userProfile, schema) {
-    const validator = this.getValidator('userProfile', schema);
-    const valid = validator(userProfile);
-
-    if (!valid) {
-      return {
-        isValid: false,
-        errors: validator.errors
-      };
-    }
-
-    return { isValid: true };
-  }
-
-  /**
    * Get or create validator for a schema
    * @param {String} key - Validator key
    * @param {Object} schema - Validation schema
@@ -42,4 +22,4 @@ class ValidationService {
   }
 }
 
-module.exports = new ValidationService(); 
+module.exports = new ValidationService();

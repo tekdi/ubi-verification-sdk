@@ -6,17 +6,12 @@ class VerificationService {
    * Verifies a credential using either a remote verification API endpoint or the standalone verification library.
    * 
    * @param {Object} credential - The credential JSON to be verified.
-   * @param {Object} [issuerDidDoc=null] - The issuer's DID Document (optional, required for signature-based verification).
    * @param {Object} config - Configuration object containing verification options.
-   * @param {boolean} config.verify_using_signature - Whether to use the standalone verification library for signature-based verification.
-   * @param {string} [config.revocation_url] - The URL to fetch the revocation list (required for signature-based verification).
-   * @param {string} [config.issuerId] - The issuer ID (required for signature-based verification).
-   * @param {string} [config.verification_api_endpoint] - The remote API endpoint for verification (if applicable).
    * @param {Object} [eligibility_rules=null] - Eligibility rules for additional checks (optional).
    * 
    * @returns {Object} - The result of the verification process, including success status, message, and additional details.
    */
-  async verify(userProfile, credential, config, eligibility_rules = null) {
+  async verify(credential, config, eligibility_rules = null) {
     try {
       let verificationResult;
       let errorMessage = '';
@@ -37,7 +32,7 @@ class VerificationService {
         for (const check of checks) {
           if (check.isValid == false) {
             errorMessage = check.message || 'Unknown error in check.';
-            errors.push({"error": errorMessage});
+            errors.push({ "error": errorMessage });
           }
         }
 
@@ -45,13 +40,13 @@ class VerificationService {
           if (Array.isArray(error)) {
             for (const err of error) {
               errorMessage = err.message || 'Unknown error in check.';
-              errors.push({"error": errorMessage});
+              errors.push({ "error": errorMessage });
             }
           } else if (error.message) {
-            errors.push({"error": error.message});
+            errors.push({ "error": error.message });
           } else {
             errorMessage = check.message || 'Unknown error in check.';
-            errors.push({"error": errorMessage});
+            errors.push({ "error": errorMessage });
           }
 
           return {
