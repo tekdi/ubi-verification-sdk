@@ -1,0 +1,91 @@
+openapi: 3.0.3
+info:
+  title: Verification API
+  version: 1.0.0
+paths:
+  /verification:
+    post:
+      summary: Verify user profile using API
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userProfile:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      example: Ankushkumar Maherwal
+                    gender:
+                      type: string
+                      enum: [Male, Female, Other]
+                    age:
+                      type: integer
+                      example: 33
+                    dateOfBirth:
+                      type: string
+                      format: date
+                      example: 1991-11-02
+                    caste:
+                      type: string
+                      example: obc
+                    income:
+                      type: string
+                      example: "10"
+                credential:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      example: Ankushkumar Maherwal
+                config:
+                  type: object
+                  properties:
+                    method:
+                      type: string
+                      enum: [verify_using_api]
+                      example: verify_using_api
+              required:
+                - userProfile
+                - credential
+                - config
+      responses:
+        '200':
+          description: Credential verified successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Credential verified successfully.
+        '400':
+          description: Credential verification failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Credential verification failed.
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        error:
+                          type: string
+                          example: Error verifyDisclosedAttributes
+        '500':
+          description: Internal Server Error
