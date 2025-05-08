@@ -1,21 +1,12 @@
 # UBI Verification SDK (Node.js Library)
 
-A lightweight Node.js library to verify credentials and check eligibility for benefits using configurable verification methods.
+A lightweight Node.js library to verify credentials using configurable verification methods.
 
 ## Features
 
-- Verifies credentials using either:
-  - A remote verification API (`verify_using_api`)
-  - A standalone signature-based verification (`verify_using_signature`)
-- Supports eligibility rule checks for additional validation
+- Verifies credentials using a remote verification API (`verify_using_api`)
 - Configurable and extensible for various use cases
 - Built with Fastify for high performance and scalability
-
-## Installation
-
-```bash
-npm install ubi-verification-sdk
-```
 
 ## Usage
 
@@ -34,20 +25,11 @@ const config = {
   method: 'verify_using_api', // Default is 'verify_using_api'
 };
 
-const eligibilityRules = [
-  [
-    {
-      title: 'Rule 1',
-    },
-  ],
-];
-
 async function verifyCredential() {
   try {
     const response = await axios.post('http://localhost:3000/verification', {
       credential,
       config,
-      eligibilityRules,
     });
     console.log('✅ Verification Result:', response.data);
   } catch (error) {
@@ -64,7 +46,7 @@ verifyCredential();
 
 #### Description
 
-Verifies a credential and optionally checks eligibility rules.
+Verifies a credential.
 
 #### Request Body
 
@@ -75,11 +57,7 @@ Verifies a credential and optionally checks eligibility rules.
   Configuration object for verification.  
   - **`method`** (`string`, optional):  
     The verification method to use.  
-    - `"verify_using_api"` (default): Verifies using a remote API.  
-    - `"verify_using_signature"`: Verifies using a standalone signature-based method.
-
-- **`eligibilityRules`** (`array`, optional):  
-  A list of eligibility rules to check against.
+    - `"verify_using_api"` (default): Verifies using a remote API.
 
 #### Response
 
@@ -91,12 +69,6 @@ Verifies a credential and optionally checks eligibility rules.
 
 - **`result`** (`object`, optional):  
   Contains details of the verification checks performed.
-
-- **`passed`** (`array`, optional):  
-  List of eligibility rules that were passed.
-
-- **`failed`** (`array`, optional):  
-  List of eligibility rules that were failed.
 
 - **`errors`** (`array`, optional):  
   List of errors encountered during verification.
@@ -116,14 +88,7 @@ Verifies a credential and optionally checks eligibility rules.
   },
   "config": {
     "method": "verify_using_api"
-  },
-  "eligibilityRules": [
-    [
-      {
-        "title": "Rule 1"
-      }
-    ]
-  ]
+  }
 }
 ```
 
@@ -141,12 +106,6 @@ Verifies a credential and optionally checks eligibility rules.
       }
     ]
   },
-  "passed": [
-    {
-      "rule": "Rule 1"
-    }
-  ],
-  "failed": [],
   "errors": []
 }
 ```
