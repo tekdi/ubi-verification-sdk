@@ -29,7 +29,7 @@ jobs:
 
     - name: Deploy to server
       run: |
-          sshpass -p '${{ secrets.SSH_PRIVATE_KEY }}' ssh -v -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.HSERVER_IP }} <<'ENDSSH'
+          sshpass -p '${{ secrets.SSH_PRIVATE_KEY }}' ssh -v -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} <<'ENDSSH'
           cd ${{ secrets.TARGET_DIR }}
           ./deploy.sh
           ENDSSH
