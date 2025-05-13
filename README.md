@@ -27,7 +27,7 @@ const config = {
 
 async function verifyCredential() {
   try {
-    const response = await axios.post('http://localhost:3000/verification', {
+    const response = await axios.post('http://localhost:3010/verification', {
       credential,
       config,
     });
@@ -118,14 +118,14 @@ To start the server, run:
 node src/index.js
 ```
 
-The server will be available at `http://localhost:3000`.
+The server will be available at `http://localhost:3010`.
 
 ## Health Check
 
 You can check the health of the API by accessing the `/health` endpoint:
 
 ```bash
-curl http://localhost:3000/health
+curl http://localhost:3010/health
 ```
 
 Response:
