@@ -1,4 +1,4 @@
-const fastify = require('fastify')({ logger: true });
+const fastify = require('fastify')({ logger: true, bodyLimit: 50 * 1024 * 1024 }); // 50 MB
 const cors = require('@fastify/cors');
 const swagger = require('@fastify/swagger');
 const swaggerUI = require('@fastify/swagger-ui');
