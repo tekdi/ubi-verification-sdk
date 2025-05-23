@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  verification-sdk:
+    container_name: verification-sdk
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    image: verification-sdk:latest
+    ports:
+      - "3010:3010"
+    env_file: .env
+    environment:
+      HOST: ${HOST}
+      PORT: ${PORT}
+      VERIFICATION_API_ENDPOINT: ${VERIFICATION_API_ENDPOINT}
+    restart: unless-stopped

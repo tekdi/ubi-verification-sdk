@@ -6,7 +6,7 @@ const path = require('path');
 const verificationService = require('./services/verificationService');
 const validationService = require('./services/validationService');
 require('dotenv').config();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3010;
 const HOST = process.env.HOST || '0.0.0.0';
 
 // Define eligibility rules schema
