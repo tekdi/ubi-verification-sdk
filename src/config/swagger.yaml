@@ -1,39 +1,68 @@
-openapi: 3.0.3
+openapi: 3.0.0
 info:
   title: Verification API
   version: 1.0.0
-
+  description: API to verify beneficiary credentials and eligibility
+servers:
+  - url: http://localhost:3000
 paths:
+  /health:
+    get:
+      summary: Health check
+      tags:
+        - System
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
   /verification:
     post:
-      summary: Verify user credential using API
+      summary: Verify beneficiary credentials
+      tags:
+        - Verification
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
+              required:
+                - credential
               properties:
                 credential:
                   type: object
-                  description: Credential data to be verified
-                  properties:
-                    name:
-                      type: string
-                      example: John Doe
+                  description: Credential JSON to be verified
                 config:
                   type: object
-                  description: Optional configuration for verification
                   properties:
                     method:
                       type: string
-                      enum: [verify_using_api]
-                      default: verify_using_api
-              required:
-                - credential
+                      example: verify_using_api
+                    apiEndpoint:
+                      type: string
+                      example: https://api1.example.com
+                eligibility_rules:
+                  type: array
+                  description: List of eligibility rules to check against
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      required: [title]
+                      properties:
+                        title:
+                          type: string
+                          example: Age should be above 18
       responses:
         '200':
-          description: Credential verified successfully
+          description: Verification result
           content:
             application/json:
               schema:
@@ -41,23 +70,34 @@ paths:
                 properties:
                   success:
                     type: boolean
-                    example: true
                   message:
                     type: string
-                    example: Credential verified successfully.
-        '400':
-          description: Credential verification failed
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: false
-                  message:
-                    type: string
-                    example: Credential verification failed.
+                  result:
+                    type: object
+                    properties:
+                      checks:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            title:
+                              type: string
+                            status:
+                              type: boolean
+                  passed:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        rule:
+                          type: string
+                  failed:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        rule:
+                          type: string
                   errors:
                     type: array
                     items:
@@ -65,6 +105,12 @@ paths:
                       properties:
                         error:
                           type: string
-                          example: Error verifyDisclosedAttributes
-        '500':
-          description: Internal Server Error
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string

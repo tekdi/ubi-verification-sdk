@@ -4,19 +4,9 @@ const swagger = require('@fastify/swagger');
 const swaggerUI = require('@fastify/swagger-ui');
 const path = require('path');
 const verificationService = require('./services/verificationService');
-const validationService = require('./services/validationService');
 require('dotenv').config();
 const PORT = process.env.PORT || 3010;
 const HOST = process.env.HOST || '0.0.0.0';
-
-// Define eligibility rules schema
-const eligibilityRulesSchema = {
-  type: 'object',
-  required: ['title'],
-  properties: {
-    'title': 'string'
-  }
-};
 
 // Register plugins
 fastify.register(cors, {
@@ -24,12 +14,11 @@ fastify.register(cors, {
   methods: ['GET', 'POST', 'PUT', 'DELETE']
 });
 
-// Register Swagger
 fastify.register(swagger, {
   mode: 'static',
   specification: {
     path: path.join(__dirname, 'config', 'swagger.yaml'),
-    postProcessor: function(swaggerObject) {
+    postProcessor: function (swaggerObject) {
       return swaggerObject;
     }
   },
@@ -38,7 +27,6 @@ fastify.register(swagger, {
   }
 });
 
-// Register Swagger UI
 fastify.register(swaggerUI, {
   routePrefix: '/documentation',
   uiConfig: {
@@ -59,7 +47,7 @@ fastify.get('/health', {
       200: {
         type: 'object',
         properties: {
-          status: { 
+          status: {
             type: 'string',
             enum: ['ok'],
             description: 'Health status'
@@ -72,10 +60,10 @@ fastify.get('/health', {
   return { status: 'ok' };
 });
 
-// Main eligibility check endpoint
+// Main verification endpoint
 fastify.post('/verification', {
   schema: {
-    tags: ['verification'],
+    tags: ['Verification'],
     summary: 'Verify beneficiary credentials',
     description: 'Verify if beneficiary credentials are valid and check eligibility for benefits',
     body: {
@@ -86,8 +74,17 @@ fastify.post('/verification', {
           type: 'object',
           description: 'The credential JSON to be verified'
         },
-        eligibilityRules: {
+        config: {
+          type: 'object',
+          description: 'Verification configuration',
+          properties: {
+            method: { type: 'string', description: 'Verification method (e.g. verify_using_api)' },
+            apiEndpoint: { type: 'string', description: 'The API endpoint to use for verification' }
+          }
+        },
+        eligibility_rules: {
           type: 'array',
+          description: 'List of eligibility rules to check against',
           items: {
             type: 'array',
             items: {
@@ -96,8 +93,7 @@ fastify.post('/verification', {
               properties: {
                 title: { type: 'string' }
               }
-            },
-            description: 'List of eligibility rules to check against'
+            }
           }
         }
       }
@@ -106,8 +102,8 @@ fastify.post('/verification', {
       200: {
         type: 'object',
         properties: {
-          success: { type: 'boolean', description: 'Indicates if the verification was successful' },
-          message: { type: 'string', description: 'Message indicating the result of the verification' },
+          success: { type: 'boolean' },
+          message: { type: 'string' },
           result: {
             type: 'object',
             properties: {
@@ -116,11 +112,10 @@ fastify.post('/verification', {
                 items: {
                   type: 'object',
                   properties: {
-                    title: { type: 'string', description: 'Title of the performed check' },
-                    status: { type: 'boolean', description: 'Status of the check (true/false)' }
+                    title: { type: 'string' },
+                    status: { type: 'boolean' }
                   }
-                },
-                description: 'List of checks performed during verification'
+                }
               }
             }
           },
@@ -129,57 +124,47 @@ fastify.post('/verification', {
             items: {
               type: 'object',
               properties: {
-                rule: { type: 'string', description: 'ID or title of the eligible verification rule' }
+                rule: { type: 'string' }
               }
-            },
-            description: 'List of passed eligibility rules'
+            }
           },
           failed: {
             type: 'array',
             items: {
               type: 'object',
               properties: {
-                rule: { type: 'string', description: 'ID or title of the eligible verification rule' }
+                rule: { type: 'string' }
               }
-            },
-            description: 'List of failed eligibility rules'
+            }
           },
           errors: {
             type: 'array',
             items: {
               type: 'object',
               properties: {
-                error: { type: 'string', description: 'Error message' }
+                error: { type: 'string' }
               }
-            },
-            description: 'List of errors encountered during eligibility check'
+            }
           }
         }
       },
       400: {
         type: 'object',
         properties: {
-          error: { type: 'string', description: 'Error message' }
+          error: { type: 'string' }
         }
       }
     }
   }
 }, async (request, reply) => {
   try {
-    const { credential, eligibility_rules, config } = request.body;
+    const payload = request.body;
 
-    // Validate input
-    if (!credential) {
-      throw new Error('Missing required parameters');
+    if (!payload.credential) {
+      throw new Error('Missing required parameter: credential');
     }
 
-    // Process eligibility
-    const results = await verificationService.verify(
-      credential,
-      config,
-      eligibility_rules
-    );
-
+    const results = await verificationService.verify(payload);
     return results;
   } catch (error) {
     fastify.log.error(error);
