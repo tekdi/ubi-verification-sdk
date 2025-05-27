@@ -48,18 +48,11 @@ paths:
                     apiEndpoint:
                       type: string
                       example: https://api1.example.com
-                eligibility_rules:
-                  type: array
-                  description: List of eligibility rules to check against
-                  items:
-                    type: array
-                    items:
-                      type: object
-                      required: [title]
-                      properties:
-                        title:
-                          type: string
-                          example: Age should be above 18
+            example:
+              credential: {}
+              config:
+                method: online
+                apiEndpoint: https://example/api/v1/verify/credentials/verify
       responses:
         '200':
           description: Verification result

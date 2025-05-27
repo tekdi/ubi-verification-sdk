@@ -78,22 +78,8 @@ fastify.post('/verification', {
           type: 'object',
           description: 'Verification configuration',
           properties: {
-            method: { type: 'string', description: 'Verification method (e.g. verify_using_api)' },
+            method: { type: 'string', description: 'Verification method (e.g. online)' },
             apiEndpoint: { type: 'string', description: 'The API endpoint to use for verification' }
-          }
-        },
-        eligibility_rules: {
-          type: 'array',
-          description: 'List of eligibility rules to check against',
-          items: {
-            type: 'array',
-            items: {
-              type: 'object',
-              required: ['title'],
-              properties: {
-                title: { type: 'string' }
-              }
-            }
           }
         }
       }

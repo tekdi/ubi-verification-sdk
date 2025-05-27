@@ -14,7 +14,7 @@ class ApiVerifier extends VerifierInterface {
     try {
         console.log('Verifying credential using API:', credential);
         console.log('apiEndpoint using API:', this.apiEndpoint);
-      const response = await axios.post(`${this.apiEndpoint}/verify`, credential);
+      const response = await axios.post(`${this.apiEndpoint}`, credential);
       const error = response?.data?.error;
       const checks = response?.data?.checks;
 
