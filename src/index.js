@@ -78,8 +78,9 @@ fastify.post('/verification', {
           type: 'object',
           description: 'Verification configuration',
           properties: {
-            method: { type: 'string', description: 'Verification method (e.g. online)' },
-            apiEndpoint: { type: 'string', description: 'The API endpoint to use for verification' }
+            method: { type: 'string', description: 'Verification method (e.g. online / )' },
+            apiEndpoint: { type: 'string', description: 'The API endpoint to use for verification' },
+            verifierName: { type: 'string', description: 'Name of the verifier (e.g. dhiway)' }
           }
         }
       }
@@ -128,7 +129,8 @@ fastify.post('/verification', {
             items: {
               type: 'object',
               properties: {
-                error: { type: 'string' }
+                error: { type: 'string' },
+                raw: { type: 'string' }
               }
             }
           }

@@ -1,4 +1,4 @@
-const VerifierInterface = require('./VerifierInterface');
+const VerifierInterface = require('../VerifierInterface');
 
 class SignatureVerifier extends VerifierInterface {
   async verify(credential) {

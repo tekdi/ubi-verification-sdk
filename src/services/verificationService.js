@@ -4,14 +4,14 @@ class VerificationService {
   /**
    * Main method to verify a credential using config and optional eligibility rules
    * @param {Object} credential
-   * @param {Object} config - includes method and apiEndpoint
+   * @param {Object} config - includes verifierName, apiEndpoint, etc.
    */
   async verify(payload) {
     try {
       const { credential, config = {} } = payload;
       const verifier = VerifierFactory.getVerifier(config);
       const result = await verifier.verify(credential);
-      if (!result.success) return result;
+      console.log("Verification result:", result);
       return result;
     } catch (error) {
       return {
