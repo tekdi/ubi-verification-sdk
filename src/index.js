@@ -139,7 +139,8 @@ fastify.post('/verification', {
     }
 
     const results = await verificationService.verify(payload);
-    return results;
+    const verificationOutcome = validateVerificationResult(results);
+    return verificationOutcome;
   } catch (error) {
     fastify.log.error(error);
     reply.code(400).send({ error: error.message });
@@ -169,3 +170,23 @@ const start = async () => {
 };
 
 start();
+
+function validateVerificationResult(result) {
+  if (typeof result !== 'object' || result === null) {
+    throw new Error('Invalid verification result: not an object');
+  }
+
+  if (typeof result.success !== 'boolean') {
+    throw new Error('Invalid verification result: missing "success" boolean');
+  }
+
+  if (typeof result.message !== 'string') {
+    throw new Error('Invalid verification result: missing "message"');
+  }
+
+  if (!result.success && !Array.isArray(result.errors)) {
+    throw new Error('Invalid verification result: failed result must include "errors" array');
+  }
+
+  return result;
+}

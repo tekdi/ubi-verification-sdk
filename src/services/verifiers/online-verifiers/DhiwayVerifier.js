@@ -1,21 +1,29 @@
 const axios = require("axios");
 const VerifierInterface = require("../VerifierInterface");
-const { translateError } = require("../../../utils/errorTranslator");
-const { buildVerifierResponse } = require("../../../utils/verifierResponseBuilder");
-
 class DhiwayVerifier extends VerifierInterface {
   constructor(config = {}) {
     super(config);
     this.apiEndpoint = config.apiEndpoint;
   }
 
-  processVerificationResponse(response) {
+  errorTranslator = {
+    "Failed to verify CordProof2024":
+      "The credential's authenticity couldn't be verified. It may be expired, revoked, altered, or issued by an untrusted source.",
+    "Error verifyDisclosedAttributes":
+      "Some information in the credential couldn't be verified. Please ensure the credential is complete and hasn't been modified.",
+    "Unknown error in check":
+      "An unexpected issue occurred during credential verification. Please try again later.",
+  };
+
+  translateResponse(response) {
     const error = response?.data?.error;
     let formattedErrors = [];
     if (error && error.length > 0) {
       const pushError = (errObj) => ({
-        error: translateError(errObj.message || "Unknown error"),
-        raw: errObj.message || "Unknown error",
+        error:
+          this.errorTranslator[errObj.message] ||
+          "An unknown error occurred during verification.",
+        raw: errObj.message || "An unknown error occurred",
       });
       if (Array.isArray(error)) {
         formattedErrors = error.map(pushError);
@@ -25,25 +33,25 @@ class DhiwayVerifier extends VerifierInterface {
     }
 
     if (formattedErrors.length > 0) {
-      return buildVerifierResponse({
+      return {
         success: false,
         message: "Credential verification failed.",
         errors: formattedErrors,
-      });
+      };
     }
 
-    return buildVerifierResponse({
+    return {
       success: true,
       message: "Credential verified successfully.",
-    });
+    };
   }
 
   async verify(credential) {
     try {
       const response = await axios.post(this.apiEndpoint, credential);
-      return this.processVerificationResponse(response);
+      return this.translateResponse(response);
     } catch (error) {
-      return buildVerifierResponse({
+      return {
         success: false,
         message: "Verification API error",
         errors: [
@@ -52,7 +60,7 @@ class DhiwayVerifier extends VerifierInterface {
             raw: error.message,
           },
         ],
-      });
+      };
     }
   }
 }
