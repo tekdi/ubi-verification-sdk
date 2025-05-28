@@ -8,6 +8,11 @@ class VerifierInterface {
 
   /**
    * Verifies a credential.
+   * Should return:
+   *   On success:
+   *     { success: true, message: "Credential verified successfully." }
+   *   On failure:
+   *     { success: false, message: "...", errors: [{ error: "...", raw: "..." }] }
    * @param {Object} credential
    * @returns {Promise<Object>}
    */

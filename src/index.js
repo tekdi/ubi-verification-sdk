@@ -68,7 +68,7 @@ fastify.post('/verification', {
     description: 'Verify if beneficiary credentials are valid and check eligibility for benefits',
     body: {
       type: 'object',
-      required: ['credential'],
+      required: ['credential', 'config'],
       properties: {
         credential: {
           type: 'object',
@@ -76,12 +76,23 @@ fastify.post('/verification', {
         },
         config: {
           type: 'object',
+          required: ['method'],
           description: 'Verification configuration',
           properties: {
-            method: { type: 'string', description: 'Verification method (e.g. online / )' },
+            method: { type: 'string', description: 'Verification method (e.g. online)' },
             apiEndpoint: { type: 'string', description: 'The API endpoint to use for verification' },
             verifierName: { type: 'string', description: 'Name of the verifier (e.g. dhiway)' }
-          }
+          },
+          allOf: [
+            {
+              if: {
+                properties: { method: { const: 'online' } }
+              },
+              then: {
+                required: ['verifierName', 'apiEndpoint']
+              }
+            }
+          ]
         }
       }
     },
@@ -91,39 +102,6 @@ fastify.post('/verification', {
         properties: {
           success: { type: 'boolean' },
           message: { type: 'string' },
-          result: {
-            type: 'object',
-            properties: {
-              checks: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    title: { type: 'string' },
-                    status: { type: 'boolean' }
-                  }
-                }
-              }
-            }
-          },
-          passed: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                rule: { type: 'string' }
-              }
-            }
-          },
-          failed: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                rule: { type: 'string' }
-              }
-            }
-          },
           errors: {
             type: 'array',
             items: {
@@ -134,7 +112,9 @@ fastify.post('/verification', {
               }
             }
           }
-        }
+        },
+        required: ['success', 'message'],
+        additionalProperties: false
       },
       400: {
         type: 'object',
@@ -148,8 +128,14 @@ fastify.post('/verification', {
   try {
     const payload = request.body;
 
-    if (!payload.credential) {
-      throw new Error('Missing required parameter: credential');
+    if (!payload.credential || Object.keys(payload.credential).length === 0) {
+      reply.code(400).send({ error: 'Missing or empty required parameter: credential' });
+      return;
+    }
+
+    if (!payload.config) {
+      reply.code(400).send({ error: 'Missing required parameter: config' });
+      return;
     }
 
     const results = await verificationService.verify(payload);
@@ -157,6 +143,16 @@ fastify.post('/verification', {
   } catch (error) {
     fastify.log.error(error);
     reply.code(400).send({ error: error.message });
+  }
+});
+
+fastify.setErrorHandler((error, request, reply) => {
+  if (error.validation) {
+    // Fastify validation error
+    const missing = error.validation.map(v => v.message).join(', ');
+    reply.status(400).send({ error: `Validation error: ${missing}` });
+  } else {
+    reply.status(error.statusCode || 500).send({ error: error.message });
   }
 });
 

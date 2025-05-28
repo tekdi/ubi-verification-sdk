@@ -1,6 +1,7 @@
-const axios = require('axios');
-const VerifierInterface = require('../VerifierInterface');
-const { translateError } = require('../../../utils/errorTranslator');
+const axios = require("axios");
+const VerifierInterface = require("../VerifierInterface");
+const { translateError } = require("../../../utils/errorTranslator");
+const { buildVerifierResponse } = require("../../../utils/verifierResponseBuilder");
 
 class DhiwayVerifier extends VerifierInterface {
   constructor(config = {}) {
@@ -8,62 +9,50 @@ class DhiwayVerifier extends VerifierInterface {
     this.apiEndpoint = config.apiEndpoint;
   }
 
+  processVerificationResponse(response) {
+    const error = response?.data?.error;
+    let formattedErrors = [];
+    if (error && error.length > 0) {
+      const pushError = (errObj) => ({
+        error: translateError(errObj.message || "Unknown error"),
+        raw: errObj.message || "Unknown error",
+      });
+      if (Array.isArray(error)) {
+        formattedErrors = error.map(pushError);
+      } else {
+        formattedErrors = [pushError(error)];
+      }
+    }
+
+    if (formattedErrors.length > 0) {
+      return buildVerifierResponse({
+        success: false,
+        message: "Credential verification failed.",
+        errors: formattedErrors,
+      });
+    }
+
+    return buildVerifierResponse({
+      success: true,
+      message: "Credential verified successfully.",
+    });
+  }
+
   async verify(credential) {
     try {
-      if (!this.apiEndpoint) {
-        return { success: false, message: 'API endpoint is not set.' };
-      }
-      if (!credential || typeof credential !== 'object' || Array.isArray(credential) || 
-      Object.keys(credential).length === 0) {
-        return { success: false, message: 'Invalid credential format. Expected a non-empty object.' };
-      }
       const response = await axios.post(this.apiEndpoint, credential);
-      const error = response?.data?.error;
-      const checks = response?.data?.checks;
-
-      const errors = [];
-      for (const check of checks || []) {
-        if (check.isValid === false) {
-          errors.push({
-            error: translateError(check.message || 'Unknown error in check'),
-            raw: check.message || 'Unknown error in check'
-          });
-        }
-      }
-
-      if (error && error.length > 0) {
-        if (Array.isArray(error)) {
-          for (const err of error) {
-            errors.push({
-              error: translateError(err.message || 'Unknown error in check'),
-              raw: err.message || 'Unknown error in check'
-            });
-          }
-        } else {
-          errors.push({
-            error: translateError(error.message || 'Unknown error in check'),
-            raw: error.message || 'Unknown error in check'
-          });
-        }
-
-        return {
-          success: false,
-          message: 'Credential verification failed.',
-          errors
-        };
-      }
-
-      return {
-        success: true,
-        message: 'Credential verified successfully.',
-        checks
-      };
+      return this.processVerificationResponse(response);
     } catch (error) {
-      return {
+      return buildVerifierResponse({
         success: false,
-        message: 'Verification API error',
-        error: error.message
-      };
+        message: "Verification API error",
+        errors: [
+          {
+            error: error.message,
+            raw: error.message,
+          },
+        ],
+      });
     }
   }
 }

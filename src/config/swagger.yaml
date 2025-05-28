@@ -35,12 +35,15 @@ paths:
               type: object
               required:
                 - credential
+                - config
               properties:
                 credential:
                   type: object
                   description: Credential JSON to be verified
                 config:
                   type: object
+                  required:
+                    - method
                   properties:
                     method:
                       type: string
@@ -48,11 +51,15 @@ paths:
                     apiEndpoint:
                       type: string
                       example: https://api1.example.com
+                    verifierName:
+                      type: string
+                      example: dhiway
             example:
               credential: {}
               config:
                 method: online
                 apiEndpoint: https://example/api/v1/verify/credentials/verify
+                verifierName: dhiway
       responses:
         '200':
           description: Verification result
@@ -60,37 +67,14 @@ paths:
             application/json:
               schema:
                 type: object
+                required:
+                  - success
+                  - message
                 properties:
                   success:
                     type: boolean
                   message:
                     type: string
-                  result:
-                    type: object
-                    properties:
-                      checks:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            title:
-                              type: string
-                            status:
-                              type: boolean
-                  passed:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        rule:
-                          type: string
-                  failed:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        rule:
-                          type: string
                   errors:
                     type: array
                     items:
@@ -98,6 +82,23 @@ paths:
                       properties:
                         error:
                           type: string
+                        raw:
+                          type: string
+                additionalProperties: false
+              examples:
+                Success:
+                  summary: Successful verification
+                  value:
+                    success: true
+                    message: "Credential verified successfully."
+                Failure:
+                  summary: Failed verification
+                  value:
+                    success: false
+                    message: "Verification failed"
+                    errors:
+                      - error: "Invalid credential"
+                        raw: "Signature mismatch"
         '400':
           description: Bad Request
           content:
