@@ -1,8 +1,8 @@
-name: Deploy Fastify App
+name: Deploy to UBA DePWD Pilot
 
 on:
   push:
-    branches: [ main ]
+    branches: [ depwd-pilot ]
 
 jobs:
   build-and-deploy:
