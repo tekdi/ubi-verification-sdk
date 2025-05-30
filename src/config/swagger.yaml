@@ -1,63 +1,76 @@
-openapi: 3.0.3
+openapi: 3.0.0
 info:
   title: Verification API
   version: 1.0.0
-
+  description: API to verify beneficiary credentials and eligibility
+servers:
+  - url: http://localhost:3000
 paths:
+  /health:
+    get:
+      summary: Health check
+      tags:
+        - System
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
   /verification:
     post:
-      summary: Verify user credential using API
+      summary: Verify beneficiary credentials
+      tags:
+        - Verification
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
+              required:
+                - credential
+                - config
               properties:
                 credential:
                   type: object
-                  description: Credential data to be verified
-                  properties:
-                    name:
-                      type: string
-                      example: John Doe
+                  description: Credential JSON to be verified
                 config:
                   type: object
-                  description: Optional configuration for verification
+                  required:
+                    - method
                   properties:
                     method:
                       type: string
-                      enum: [verify_using_api]
-                      default: verify_using_api
-              required:
-                - credential
+                      example: verify_using_api
+                    issuerName:
+                      type: string
+                      example: dhiway
+            example:
+              credential: {}
+              config:
+                method: online
+                issuerName: dhiway
       responses:
         '200':
-          description: Credential verified successfully
+          description: Verification result
           content:
             application/json:
               schema:
                 type: object
+                required:
+                  - success
+                  - message
                 properties:
                   success:
                     type: boolean
-                    example: true
                   message:
                     type: string
-                    example: Credential verified successfully.
-        '400':
-          description: Credential verification failed
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: false
-                  message:
-                    type: string
-                    example: Credential verification failed.
                   errors:
                     type: array
                     items:
@@ -65,6 +78,29 @@ paths:
                       properties:
                         error:
                           type: string
-                          example: Error verifyDisclosedAttributes
-        '500':
-          description: Internal Server Error
+                        raw:
+                          type: string
+                additionalProperties: false
+              examples:
+                Success:
+                  summary: Successful verification
+                  value:
+                    success: true
+                    message: "Credential verified successfully."
+                Failure:
+                  summary: Failed verification
+                  value:
+                    success: false
+                    message: "Verification failed"
+                    errors:
+                      - error: "Invalid credential"
+                        raw: "Signature mismatch"
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
