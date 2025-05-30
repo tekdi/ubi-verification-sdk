@@ -82,15 +82,18 @@ fastify.post('/verification', {
             method: { type: 'string', description: 'Verification method (e.g. online)' },
             verifierName: { type: 'string', description: 'Name of the verifier (e.g. dhiway)' }
           },
-          allOf: [
+          anyOf: [
             {
-              if: {
-                properties: { method: { const: 'online' } }
+              properties: {
+                method: { not: { const: "online" } },
               },
-              then: {
-                required: ['verifierName']
-              }
-            }
+            },
+            {
+              properties: {
+                method: { const: "online" },
+              },
+              required: ["verifierName"],
+            },
           ]
         }
       }
@@ -127,7 +130,7 @@ fastify.post('/verification', {
   try {
     const payload = request.body;
 
-    if (!payload.credential || Object.keys(payload.credential).length === 0) {
+    if (!payload.credential || typeof payload.credential !== 'object' || Object.keys(payload.credential).length === 0) {
       reply.code(400).send({ error: 'Missing or empty required parameter: credential' });
       return;
     }
