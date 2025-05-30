@@ -5,7 +5,7 @@ A lightweight, extensible Node.js library for credential verification, designed 
 ## Features
 
 - Supports multiple verification methods (currently "online"; "offline" can be added)
-- Modular architecture: add new providers by implementing a class
+- Modular architecture: add new verifiers by implementing a class
 - Built with Fastify for high performance and scalability
 - Easily configurable for various use cases
 
@@ -47,9 +47,9 @@ Response:
 
 #### Description
 
-Verifies a credential using the specified method and provider.  
-Currently, the SDK supports "online" verification for Verifiable Credentials (VC) using the "dhiway" provider.  
-To add new providers, implement a new class and integrate it with the verification service.
+Verifies a credential using the specified method and verifier.
+Currently, the SDK supports "online" verification for Verifiable Credentials (VC) using the "dhiway" verifier.
+To add new verifiers, implement a new class and integrate it with the verification service.
 
 #### Request Body
 
