@@ -4,7 +4,7 @@ class VerificationService {
   /**
    * Main method to verify a credential using config and optional eligibility rules
    * @param {Object} credential
-   * @param {Object} config - includes verifierName, etc.
+   * @param {Object} config - includes issuerName, etc.
    */
   async verify(payload) {
     try {

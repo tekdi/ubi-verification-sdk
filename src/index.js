@@ -80,7 +80,7 @@ fastify.post('/verification', {
           description: 'Verification configuration',
           properties: {
             method: { type: 'string', description: 'Verification method (e.g. online)' },
-            verifierName: { type: 'string', description: 'Name of the verifier (e.g. dhiway)' }
+            issuerName: { type: 'string', description: 'Name of the verifier (e.g. dhiway)' }
           },
           anyOf: [
             {
@@ -92,7 +92,7 @@ fastify.post('/verification', {
               properties: {
                 method: { const: "online" },
               },
-              required: ["verifierName"],
+              required: ["issuerName"],
             },
           ]
         }

@@ -60,9 +60,9 @@ To add new verifiers, implement a new class and integrate it with the verificati
   Configuration object for verification.  
   - **`method`** (`string`, required):  
     The verification method to use.  
-    - `"online"`: Verifies using a named online verifier (requires `verifierName`).
+    - `"online"`: Verifies using a named online verifier (requires `issuerName`).
     - `"offline"`: (To be implemented by adding an offline verifier class)
-  - **`verifierName`** (`string`, required if `method` is `"online"`):  
+  - **`issuerName`** (`string`, required if `method` is `"online"`):  
     Name of the verifier to use (currently supports `"dhiway"`).
 
 #### Example Request
@@ -80,7 +80,7 @@ To add new verifiers, implement a new class and integrate it with the verificati
   },
   "config": {
     "method": "online",
-    "verifierName": "dhiway"
+    "issuerName": "dhiway"
   }
 }
 ```
@@ -131,9 +131,9 @@ const credential = {
 };
 
 const config = {
-  // For method: 'online', you must also provide verifierName, e.g.:
+  // For method: 'online', you must also provide issuerName, e.g.:
   method: 'online',
-  verifierName: 'dhiway'
+  issuerName: 'dhiway'
 };
 
 async function verifyCredential() {
@@ -161,7 +161,7 @@ The SDK uses a modular, extensible architecture for credential verification, cen
   Main entry point for verification logic. It receives the payload, selects the appropriate verifier, and returns the result.
 
 - **[`verifiers/VerifierFactory.js`](src/services/verifiers/VerifierFactory.js):**
-  Factory class that selects and instantiates the correct verifier based on the `config` (e.g., `method` and `verifierName`).
+  Factory class that selects and instantiates the correct verifier based on the `config` (e.g., `method` and `issuerName`).
 
 - **[`verifiers/VerifierInterface.js`](src/services/verifiers/VerifierInterface.js):**
   Abstract base class. All verifiers must extend this and implement the `verify(credential)` method.
@@ -186,13 +186,13 @@ The SDK uses a modular, extensible architecture for credential verification, cen
    - The filename should match the class name (e.g., `AcmeVerifier.js`).
 
 3. **Update Configuration:**
-   - To use your verifier, set `method` and `verifierName` in the request config:
+   - To use your verifier, set `method` and `issuerName` in the request config:
      ```json
      {
        "credential": { /* ... */ },
        "config": {
          "method": "online",
-         "verifierName": "acme"
+         "issuerName": "acme"
        }
      }
      ```
@@ -221,7 +221,7 @@ The SDK uses a modular, extensible architecture for credential verification, cen
      "credential": { /* ... */ },
      "config": {
        "method": "online",
-       "verifierName": "acme"
+       "issuerName": "acme"
      }
    }
    ```

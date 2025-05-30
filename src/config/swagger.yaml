@@ -48,14 +48,14 @@ paths:
                     method:
                       type: string
                       example: verify_using_api
-                    verifierName:
+                    issuerName:
                       type: string
                       example: dhiway
             example:
               credential: {}
               config:
                 method: online
-                verifierName: dhiway
+                issuerName: dhiway
       responses:
         '200':
           description: Verification result
