@@ -1,4 +1,4 @@
-name: Deploy Fastify App
+name: Deploy to UBA-DEV
 
 on:
   push:
