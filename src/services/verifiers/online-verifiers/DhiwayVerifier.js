@@ -1,9 +1,12 @@
 const axios = require("axios");
 const VerifierInterface = require("../VerifierInterface");
 class DhiwayVerifier extends VerifierInterface {
-  constructor(config = {}) {
-    super(config);
-    this.apiEndpoint = config.apiEndpoint;
+  constructor() {
+    super();
+    this.apiEndpoint = process.env.DHIWAY_VERIFIER_VERIFICATION_API;
+    if (!this.apiEndpoint) {
+      throw new Error("DHIWAY_VERIFIER_VERIFICATION_API environment variable is not set.");
+    }
   }
 
   errorTranslator = {
@@ -18,7 +21,7 @@ class DhiwayVerifier extends VerifierInterface {
   translateResponse(response) {
     const error = response?.data?.error;
     let formattedErrors = [];
-    if (error && error.length > 0) {
+    if (error && (Array.isArray(error) ? error.length > 0 : true)) {
       const pushError = (errObj) => ({
         error:
           this.errorTranslator[errObj.message] ||

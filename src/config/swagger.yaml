@@ -48,9 +48,6 @@ paths:
                     method:
                       type: string
                       example: verify_using_api
-                    apiEndpoint:
-                      type: string
-                      example: https://api1.example.com
                     verifierName:
                       type: string
                       example: dhiway
@@ -58,7 +55,6 @@ paths:
               credential: {}
               config:
                 method: online
-                apiEndpoint: https://example/api/v1/verify/credentials/verify
                 verifierName: dhiway
       responses:
         '200':

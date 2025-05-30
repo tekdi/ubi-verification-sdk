@@ -80,7 +80,6 @@ fastify.post('/verification', {
           description: 'Verification configuration',
           properties: {
             method: { type: 'string', description: 'Verification method (e.g. online)' },
-            apiEndpoint: { type: 'string', description: 'The API endpoint to use for verification' },
             verifierName: { type: 'string', description: 'Name of the verifier (e.g. dhiway)' }
           },
           allOf: [
@@ -89,7 +88,7 @@ fastify.post('/verification', {
                 properties: { method: { const: 'online' } }
               },
               then: {
-                required: ['verifierName', 'apiEndpoint']
+                required: ['verifierName']
               }
             }
           ]
@@ -138,8 +137,27 @@ fastify.post('/verification', {
       return;
     }
 
-    const results = await verificationService.verify(payload);
-    const verificationOutcome = validateVerificationResult(results);
+    let results;
+    try {
+      results = await verificationService.verify(payload);
+    } catch (error) {
+      reply.code(400).send({ error: error.message });
+      return;
+    }
+
+    // If verification failed and errors array is missing, return the error directly
+    if (results && results.success === false && !Array.isArray(results.errors)) {
+      reply.code(400).send({ error: results.message || 'Verification failed' });
+      return;
+    }
+
+    let verificationOutcome;
+    try {
+      verificationOutcome = validateVerificationResult(results);
+    } catch (error) {
+      reply.code(400).send({ error: error.message });
+      return;
+    }
     return verificationOutcome;
   } catch (error) {
     fastify.log.error(error);

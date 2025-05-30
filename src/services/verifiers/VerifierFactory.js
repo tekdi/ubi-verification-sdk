@@ -13,13 +13,19 @@ class VerifierFactory {
         throw new Error('verifierName is required for online verification');
       }
       try {
+        // Validate verifierName
+        if (!/^[a-zA-Z]+$/.test(verifierName)) {
+          throw new Error('Invalid verifier name format');
+        }
         // Capitalize first letter and append 'Verifier'
         const className = verifierName.charAt(0).toUpperCase() + verifierName.slice(1) + 'Verifier';
         // Dynamically require the verifier class
         const VerifierClass = require(`./online-verifiers/${className}`);
         return new VerifierClass(config);
       } catch (err) {
-        console.error(`Error loading verifier: ${err.message}`);
+        if (process.env.NODE_ENV !== 'production') {
+          console.error(`Error loading verifier: ${err.message}`);
+        }
         throw new Error(`Unknown online verifier: ${verifierName}`);
       }
     } else if (method === 'offline') {
