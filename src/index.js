@@ -4,19 +4,9 @@ const swagger = require('@fastify/swagger');
 const swaggerUI = require('@fastify/swagger-ui');
 const path = require('path');
 const verificationService = require('./services/verificationService');
-const validationService = require('./services/validationService');
 require('dotenv').config();
 const PORT = process.env.PORT || 3010;
 const HOST = process.env.HOST || '0.0.0.0';
-
-// Define eligibility rules schema
-const eligibilityRulesSchema = {
-  type: 'object',
-  required: ['title'],
-  properties: {
-    'title': 'string'
-  }
-};
 
 // Register plugins
 fastify.register(cors, {
@@ -24,12 +14,11 @@ fastify.register(cors, {
   methods: ['GET', 'POST', 'PUT', 'DELETE']
 });
 
-// Register Swagger
 fastify.register(swagger, {
   mode: 'static',
   specification: {
     path: path.join(__dirname, 'config', 'swagger.yaml'),
-    postProcessor: function(swaggerObject) {
+    postProcessor: function (swaggerObject) {
       return swaggerObject;
     }
   },
@@ -38,7 +27,6 @@ fastify.register(swagger, {
   }
 });
 
-// Register Swagger UI
 fastify.register(swaggerUI, {
   routePrefix: '/documentation',
   uiConfig: {
@@ -59,7 +47,7 @@ fastify.get('/health', {
       200: {
         type: 'object',
         properties: {
-          status: { 
+          status: {
             type: 'string',
             enum: ['ok'],
             description: 'Health status'
@@ -72,33 +60,41 @@ fastify.get('/health', {
   return { status: 'ok' };
 });
 
-// Main eligibility check endpoint
+// Main verification endpoint
 fastify.post('/verification', {
   schema: {
-    tags: ['verification'],
+    tags: ['Verification'],
     summary: 'Verify beneficiary credentials',
     description: 'Verify if beneficiary credentials are valid and check eligibility for benefits',
     body: {
       type: 'object',
-      required: ['credential'],
+      required: ['credential', 'config'],
       properties: {
         credential: {
           type: 'object',
           description: 'The credential JSON to be verified'
         },
-        eligibilityRules: {
-          type: 'array',
-          items: {
-            type: 'array',
-            items: {
-              type: 'object',
-              required: ['title'],
+        config: {
+          type: 'object',
+          required: ['method'],
+          description: 'Verification configuration',
+          properties: {
+            method: { type: 'string', description: 'Verification method (e.g. online)' },
+            issuerName: { type: 'string', description: 'Name of the verifier (e.g. dhiway)' }
+          },
+          anyOf: [
+            {
               properties: {
-                title: { type: 'string' }
-              }
+                method: { not: { const: "online" } },
+              },
             },
-            description: 'List of eligibility rules to check against'
-          }
+            {
+              properties: {
+                method: { const: "online" },
+              },
+              required: ["issuerName"],
+            },
+          ]
         }
       }
     },
@@ -106,84 +102,79 @@ fastify.post('/verification', {
       200: {
         type: 'object',
         properties: {
-          success: { type: 'boolean', description: 'Indicates if the verification was successful' },
-          message: { type: 'string', description: 'Message indicating the result of the verification' },
-          result: {
-            type: 'object',
-            properties: {
-              checks: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    title: { type: 'string', description: 'Title of the performed check' },
-                    status: { type: 'boolean', description: 'Status of the check (true/false)' }
-                  }
-                },
-                description: 'List of checks performed during verification'
-              }
-            }
-          },
-          passed: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                rule: { type: 'string', description: 'ID or title of the eligible verification rule' }
-              }
-            },
-            description: 'List of passed eligibility rules'
-          },
-          failed: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                rule: { type: 'string', description: 'ID or title of the eligible verification rule' }
-              }
-            },
-            description: 'List of failed eligibility rules'
-          },
+          success: { type: 'boolean' },
+          message: { type: 'string' },
           errors: {
             type: 'array',
             items: {
               type: 'object',
               properties: {
-                error: { type: 'string', description: 'Error message' }
+                error: { type: 'string' },
+                raw: { type: 'string' }
               }
-            },
-            description: 'List of errors encountered during eligibility check'
+            }
           }
-        }
+        },
+        required: ['success', 'message'],
+        additionalProperties: false
       },
       400: {
         type: 'object',
         properties: {
-          error: { type: 'string', description: 'Error message' }
+          error: { type: 'string' }
         }
       }
     }
   }
 }, async (request, reply) => {
   try {
-    const { credential, eligibility_rules, config } = request.body;
+    const payload = request.body;
 
-    // Validate input
-    if (!credential) {
-      throw new Error('Missing required parameters');
+    if (!payload.credential || typeof payload.credential !== 'object' || Object.keys(payload.credential).length === 0) {
+      reply.code(400).send({ error: 'Missing or empty required parameter: credential' });
+      return;
     }
 
-    // Process eligibility
-    const results = await verificationService.verify(
-      credential,
-      config,
-      eligibility_rules
-    );
+    if (!payload.config) {
+      reply.code(400).send({ error: 'Missing required parameter: config' });
+      return;
+    }
 
-    return results;
+    let results;
+    try {
+      results = await verificationService.verify(payload);
+    } catch (error) {
+      reply.code(400).send({ error: error.message });
+      return;
+    }
+
+    // If verification failed and errors array is missing, return the error directly
+    if (results && results.success === false && !Array.isArray(results.errors)) {
+      reply.code(400).send({ error: results.message || 'Verification failed' });
+      return;
+    }
+
+    let verificationOutcome;
+    try {
+      verificationOutcome = validateVerificationResult(results);
+    } catch (error) {
+      reply.code(400).send({ error: error.message });
+      return;
+    }
+    return verificationOutcome;
   } catch (error) {
     fastify.log.error(error);
     reply.code(400).send({ error: error.message });
+  }
+});
+
+fastify.setErrorHandler((error, request, reply) => {
+  if (error.validation) {
+    // Fastify validation error
+    const missing = error.validation.map(v => v.message).join(', ');
+    reply.status(400).send({ error: `Validation error: ${missing}` });
+  } else {
+    reply.status(error.statusCode || 500).send({ error: error.message });
   }
 });
 
@@ -200,3 +191,23 @@ const start = async () => {
 };
 
 start();
+
+function validateVerificationResult(result) {
+  if (typeof result !== 'object' || result === null) {
+    throw new Error('Invalid verification result: not an object');
+  }
+
+  if (typeof result.success !== 'boolean') {
+    throw new Error('Invalid verification result: missing "success" boolean');
+  }
+
+  if (typeof result.message !== 'string') {
+    throw new Error('Invalid verification result: missing "message"');
+  }
+
+  if (!result.success && !Array.isArray(result.errors)) {
+    throw new Error('Invalid verification result: failed result must include "errors" array');
+  }
+
+  return result;
+}
