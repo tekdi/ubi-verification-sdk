@@ -4,8 +4,12 @@ class DhiwayVerifier extends VerifierInterface {
   constructor() {
     super();
     this.apiEndpoint = process.env.DHIWAY_VERIFIER_VERIFICATION_API;
+    this.apiToken = process.env.DHIWAY_VERIFIER_VERIFICATION_API_TOKEN;
     if (!this.apiEndpoint) {
       throw new Error("DHIWAY_VERIFIER_VERIFICATION_API environment variable is not set.");
+    }
+    if (!this.apiToken) {
+      throw new Error("DHIWAY_VERIFIER_VERIFICATION_API_TOKEN environment variable is not set.");
     }
   }
 
@@ -51,7 +55,16 @@ class DhiwayVerifier extends VerifierInterface {
 
   async verify(credential) {
     try {
-      const response = await axios.post(this.apiEndpoint, credential);
+      const response = await axios.post(
+        this.apiEndpoint,
+        credential,
+        {
+          headers: {
+            Authorization: `Bearer ${this.apiToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
       return this.translateResponse(response);
     } catch (error) {
       return {
