@@ -5,6 +5,7 @@ class DhiwayVerifier extends VerifierInterface {
     super();
     this.apiEndpoint = process.env.DHIWAY_VERIFIER_VERIFICATION_API;
     this.apiToken = process.env.DHIWAY_VERIFIER_VERIFICATION_API_TOKEN;
+    this.expiryField = process.env.DHIWAY_VERIFIER_EXPIRY_FIELD || "validupto";
     if (!this.apiEndpoint) {
       throw new Error("DHIWAY_VERIFIER_VERIFICATION_API environment variable is not set.");
     }
@@ -21,6 +22,57 @@ class DhiwayVerifier extends VerifierInterface {
     "Unknown error in check":
       "An unexpected issue occurred during credential verification. Please try again later.",
   };
+
+  checkExpiry(credential) {
+    try {
+      // Check if credential has the required structure
+      if (!credential || !credential.credentialSubject) {
+        return {
+          isValid: false,
+          error: "Invalid credential structure: missing credentialSubject"
+        };
+      }
+
+      const validUpto = credential.credentialSubject[this.expiryField];
+
+      // If expiry field is not present, skip expiry check and proceed with verification
+      if (!validUpto) {
+        return {
+          isValid: true
+        };
+      }
+
+      // Parse the validupto value as a Date object
+      const expiryDate = new Date(validUpto);
+
+      // Check if the parsed date is valid
+      if (isNaN(expiryDate.getTime())) {
+        return {
+          isValid: false,
+          error: "Invalid validupto date format"
+        };
+      }
+
+      const currentDate = new Date();
+
+      // Check if the credential is expired
+      if (currentDate > expiryDate) {
+        return {
+          isValid: false,
+          error: "The credential has expired and is no longer valid."
+        };
+      }
+
+      return {
+        isValid: true
+      };
+    } catch (error) {
+      return {
+        isValid: false,
+        error: "Error checking credential expiry: " + error.message
+      };
+    }
+  }
 
   translateResponse(response) {
     const error = response?.data?.error;
@@ -55,6 +107,22 @@ class DhiwayVerifier extends VerifierInterface {
 
   async verify(credential) {
     try {
+      // Check for VC expiry before proceeding with verification
+      const expiryCheck = this.checkExpiry(credential);
+
+      if (!expiryCheck.isValid) {
+        return {
+          success: false,
+          message: "Credential verification failed.",
+          errors: [
+            {
+              error: expiryCheck.error,
+              raw: "VC expiration check failed"
+            }
+          ]
+        };
+      }
+
       const response = await axios.post(
         this.apiEndpoint,
         credential,
