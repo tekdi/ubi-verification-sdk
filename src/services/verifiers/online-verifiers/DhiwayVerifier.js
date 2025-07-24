@@ -5,7 +5,7 @@ class DhiwayVerifier extends VerifierInterface {
     super();
     this.apiEndpoint = process.env.DHIWAY_VERIFIER_VERIFICATION_API;
     this.apiToken = process.env.DHIWAY_VERIFIER_VERIFICATION_API_TOKEN;
-    this.expiryField = process.env.DHIWAY_VERIFIER_EXPIRY_FIELD || "validupto";
+    this.expiryField = process.env.DHIWAY_VERIFIER_EXPIRY_FIELD || "validUntil";
     if (!this.apiEndpoint) {
       throw new Error("DHIWAY_VERIFIER_VERIFICATION_API environment variable is not set.");
     }
@@ -26,14 +26,14 @@ class DhiwayVerifier extends VerifierInterface {
   checkExpiry(credential) {
     try {
       // Check if credential has the required structure
-      if (!credential || !credential.credentialSubject) {
+      if (!credential) {
         return {
           isValid: false,
           error: "Invalid credential structure: missing credentialSubject"
         };
       }
 
-      const validUpto = credential.credentialSubject[this.expiryField];
+      const validUpto = credential[this.expiryField];
 
       // If expiry field is not present, skip expiry check and proceed with verification
       if (!validUpto) {
