@@ -13,12 +13,12 @@ RUN chown -R appuser:appgroup /app
 USER appuser
 
 # Copy package files and install dependencies
-COPY --chown=appuser:appgroup package*.json ./
-RUN chmod 444 package*.json && npm ci --only=production --ignore-scripts
+COPY --chown=appuser:appgroup --chmod=444 package*.json ./
+RUN npm ci --only=production --ignore-scripts
 
 # Copy only the necessary application code
-COPY --chown=appuser:appgroup src/ ./src/
-RUN find src/ -type f -exec chmod 444 {} \; && find src/ -type d -exec chmod 555 {} \;
+COPY --chown=appuser:appgroup --chmod=444 src/ ./src/
+RUN find src/ -type d -exec chmod 555 {} \;
 
 # Expose the port your Fastify app runs on
 EXPOSE 3010
