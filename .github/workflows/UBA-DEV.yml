@@ -24,7 +24,7 @@ jobs:
         ./deploy.sh
         ENDSSH
 
-    ## Notify on Slack
+    # Notify on Slack
     - name: Notify on Slack channel
       uses: iRoachie/slack-github-actions@v2.3.2
       env:
